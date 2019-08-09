@@ -122,14 +122,23 @@ void DensoRobotCore::Stop()
   m_ctrl->StopService();
 }
 
+/**
+ * @fn         HRESULT DensoRobotCore::ChangeMode(int mode, bool service)
+ * @brief      Change Slave mode.
+ * @param[in]  mode Slave mode.
+ * @param[in]  service 
+ */
 HRESULT DensoRobotCore::ChangeMode(int mode, bool service)
 {
+  // Stop subscribers and publishers.
   m_ctrl->StopService();
 
   DensoRobot_Ptr pRob;
   HRESULT hr = m_ctrl->get_Robot(0, &pRob);
   if(SUCCEEDED(hr)) {
     switch(m_ctrlType) {
+      case 0:
+        // TODO: COBOTTA.
       case 8:
         hr = boost::dynamic_pointer_cast<DensoRobotRC8>(pRob)->ChangeMode(mode);
         break;
@@ -141,6 +150,7 @@ HRESULT DensoRobotCore::ChangeMode(int mode, bool service)
 
   m_mode = SUCCEEDED(hr) ? mode : 0;
 
+  // Not slave mode.
   if((m_mode == 0) && service) {
     ros::NodeHandle nd;
     m_ctrl->StartService(nd);

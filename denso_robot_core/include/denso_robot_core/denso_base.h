@@ -72,8 +72,8 @@ class DensoBase
 public:
   enum {
     SRV_MIN = 0,
-    SRV_ACT = SRV_MIN,
-    SRV_WATCH,
+    SRV_ACT = SRV_MIN,  // Actor
+    SRV_WATCH,          // Watcher
     SRV_MAX = SRV_WATCH
   };
 

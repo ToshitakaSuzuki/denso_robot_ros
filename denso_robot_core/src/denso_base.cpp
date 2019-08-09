@@ -271,6 +271,15 @@ HRESULT DensoBase::GetObjectNames(int32_t func_id, Name_Vec& vecName)
   return hr;
 }
 
+/**
+ * @fn         HRESULT DensoBase::get_Object(const Densobase_Vec& vecBase,
+ *              int index, DensoBase_Ptr *obj)
+ * @brief      Get DensoBase object specified by name.
+ * @param[in]  vecBase The reference of vector of DensoBase.
+ * @param[in]  name Object name for comparing.
+ * @param[out] obj The pointer to DensoBase object.
+ * @note       If there is no object matched, return E_HANDLE.
+ */
 HRESULT DensoBase::get_Object(const DensoBase_Vec& vecBase,
     int index, DensoBase_Ptr *obj)
 {

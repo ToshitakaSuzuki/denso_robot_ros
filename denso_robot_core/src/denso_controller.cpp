@@ -37,6 +37,7 @@ DensoController::DensoController(const std::string& name, const int* mode)
         service->put_Type("udp");
         break;
       default:
+        // SRV_WATCH
         service->put_Type("tcp");
         break;
     }
@@ -128,6 +129,15 @@ HRESULT DensoController::StartService(ros::NodeHandle& node)
   return S_OK;
 }
 
+/**
+ * @fn         HRESULT DensoBase::AddVariable(int32_t get_id,
+ *              const XMLElement *xmlVar,
+ *              DensoVariable_Vec& vecVar)
+ * @brief      Execute AddVariable by using config.xml
+ * @param[in]  get_id ID_CONTROLLER_GETVARIABLE (equivalent to caoCtrl.AddVariable).
+ * @param[in]  xmlVar <variable> element.
+ * @param[in]  vecVar vector of variables.
+ */
 HRESULT DensoController::StopService()
 {
   m_mtxSrv.lock();
@@ -193,6 +203,12 @@ bool DensoController::Update()
   return true;
 }
 
+/**
+ * @fn         HRESULT DensoController::get_Robot(int index, DensoRobot_Ptr* robot)
+ * @brief      Return DensoRobot object.
+ * @param[in]  index
+ * @param[out] robot
+ */
 HRESULT DensoController::get_Robot(int index, DensoRobot_Ptr* robot)
 {
   if(robot == NULL) {

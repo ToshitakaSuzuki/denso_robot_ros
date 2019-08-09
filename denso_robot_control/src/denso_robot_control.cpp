@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
   if(SUCCEEDED(hr)) {
       controller_manager::ControllerManager cm(&drobo, nh);
 
+      // Set rate to 125Hz.
       ros::Rate rate(1.0 / drobo.getPeriod().toSec());
       ros::AsyncSpinner spinner(1);
       spinner.start();

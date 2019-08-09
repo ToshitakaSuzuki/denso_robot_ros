@@ -76,12 +76,17 @@ HRESULT DensoRobot::StartService(ros::NodeHandle& node)
   return S_OK;
 }
 
+/**
+ * @fn         HRESULT DensoRobot::StopService()
+ * @brief      Stop subscribers and publishers.
+ */
 HRESULT DensoRobot::StopService()
 {
   m_mtxSrv.lock();
   m_serving = false;
   m_mtxSrv.unlock();
 
+  // Stop subscriber.
   m_subArmGroup.shutdown();
 
   DensoVariable_Vec::iterator itVar;
@@ -111,6 +116,11 @@ bool DensoRobot::Update()
   return true;
 }
 
+/**
+ * @fn         void DensoRobot::ChangeArmGroup(int number)
+ * @brief      Change arm group.
+ * @param[in]  number The number of arm group.
+ */
 void DensoRobot::ChangeArmGroup(int number)
 {
   m_ArmGroup = number;
@@ -139,6 +149,11 @@ HRESULT DensoRobot::get_Variable(const std::string& name, DensoVariable_Ptr* var
   return hr;
 }
 
+/**
+ * @fn         HRESULT DensoRobot::AddVariable(const std::string& name)
+ * @brief      Add robots's variable.
+ * @param[in]  name The name of variable.
+ */
 HRESULT DensoRobot::AddVariable(const std::string& name)
 {
   return DensoBase::AddVariable(ID_ROBOT_GETVARIABLE,

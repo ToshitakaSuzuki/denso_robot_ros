@@ -197,6 +197,10 @@ bool DensoRobotRC8::Update()
   return true;
 }
 
+/**
+ * @fn         HRESULT DensoRobotRC8::ExecTakeArm()
+ * @brief      Execute TakeArm.
+ */
 HRESULT DensoRobotRC8::ExecTakeArm()
 {
   int argc;
@@ -223,8 +227,8 @@ HRESULT DensoRobotRC8::ExecTakeArm()
         vntTmp->vt = (VT_ARRAY | VT_I4);
         vntTmp->parray = SafeArrayCreateVector(VT_I4, 0, 2);
         SafeArrayAccessData(vntTmp->parray, (void**)&pval);
-        pval[0] = m_ArmGroup; // Arm group
-        pval[1] = 1L;         // Keep
+        pval[0] = m_ArmGroup; // Arm group number.
+        pval[1] = 1L;         // Keep option.
         SafeArrayUnaccessData(vntTmp->parray);
         break;
     }
@@ -235,6 +239,10 @@ HRESULT DensoRobotRC8::ExecTakeArm()
   return m_vecService[DensoBase::SRV_ACT]->ExecFunction(ID_ROBOT_EXECUTE, vntArgs, vntRet);
 }
 
+/**
+ * @fn         HRESULT DensoRobotRC8::ExecGiveArm()
+ * @brief      Execute GiveArm.
+ */
 HRESULT DensoRobotRC8::ExecGiveArm()
 {
   int argc;
@@ -460,6 +468,11 @@ HRESULT DensoRobotRC8::ExecHalt()
   return m_vecService[DensoBase::SRV_WATCH]->ExecFunction(ID_ROBOT_HALT, vntArgs, vntRet);
 }
 
+/**
+ * @fn         HRESULT DensoRobotRC8::ExecCurJnt(std::vector<double>& pose)
+ * @brief      Execute HighCurJntEx.
+ * @param[out] pose The vector of pose data.
+ */
 HRESULT DensoRobotRC8::ExecCurJnt(std::vector<double>& pose)
 {
   HRESULT hr;
@@ -559,6 +572,11 @@ HRESULT DensoRobotRC8::ExecSlaveMove(
   return hr;
 }
 
+/**
+ * @fn         HRESULT DensoRobotRC8::ChangeMode(int mode)
+ * @brief      Change Slave Mode.
+ * @param[in]  mode slave mode.
+ */
 HRESULT DensoRobotRC8::ChangeMode(int mode)
 {
   HRESULT hr = S_OK;
@@ -594,6 +612,14 @@ HRESULT DensoRobotRC8::ChangeMode(int mode)
   return hr;
 }
 
+/**
+ * @fn         HRESULT DensoRobotRC8::ExecSlaveMode(
+ *                  const std::string&name, int32_t format, int32_t optin)
+ * @brief      Execute SlaveMode.
+ * @param[in]  name The name of command.
+ * @param[in]  format send or receive format.
+ * @param[in]  option (default:0)
+ */
 HRESULT DensoRobotRC8::ExecSlaveMode(
     const std::string& name, int32_t format, int32_t option)
 {
@@ -619,9 +645,13 @@ HRESULT DensoRobotRC8::ExecSlaveMode(
         break;
       case 2:
         if(option == 0) {
+            // slvSendFormat or slvRecvFormat with 0.
+            // Set timestamp unit to millisecond.
             vntTmp->vt = VT_I4;
             vntTmp->lVal = format;
         } else {
+            // slvRecvFormat with 1.
+            // Set timestamp unit to microsecond.
             vntTmp->vt = (VT_ARRAY | VT_I4);
             vntTmp->parray = SafeArrayCreateVector(VT_I4, 0, 2);
             SafeArrayAccessData(vntTmp->parray, (void**)&pval);
@@ -1262,6 +1292,11 @@ int DensoRobotRC8::get_SendFormat() const
   return m_sendfmt;
 }
 
+/**
+ * @fn         void DensoRobotRC8::put_sendFormat(int format)
+ * @brief      
+ * @param[out] format
+ */
 void DensoRobotRC8::put_SendFormat(int format)
 {
   switch(format) {
@@ -1283,7 +1318,12 @@ int DensoRobotRC8::get_RecvFormat() const
 {
   return m_recvfmt;
 }
-  
+
+ /**
+ * @fn         void DensoRobotRC8::put_RecvFormat(int format)
+ * @brief      
+ * @param[out] format
+ */
 void DensoRobotRC8::put_RecvFormat(int format)
 {
   int pose = format & RECVFMT_POSE;

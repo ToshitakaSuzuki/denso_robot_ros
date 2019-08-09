@@ -145,6 +145,10 @@ HRESULT DensoVariable::StartService(ros::NodeHandle& node)
   return S_OK;
 }
 
+/**
+ * @fn         HRESULT DensoVariable::StopService
+ * @brief      Stop publishers and subscribers.
+ */
 HRESULT DensoVariable::StopService()
 {
   m_mtxSrv.lock();
@@ -231,6 +235,11 @@ bool DensoVariable::Update()
   return true;
 }
 
+/**
+ * @fn         HRESULT Densovariable::ExecGetValue(VARIANT_Ptr& value)
+ * @brief      Get variable value.
+ * @param[out] value  
+ */
 HRESULT DensoVariable::ExecGetValue(VARIANT_Ptr& value)
 {
   VARIANT_Vec vntArgs;
@@ -247,6 +256,11 @@ HRESULT DensoVariable::ExecGetValue(VARIANT_Ptr& value)
       ID_VARIABLE_GETVALUE, vntArgs, value);
 }
 
+/**
+ * @fn         HRESULT Densovariable::ExecPutValue(VARIANT_Ptr& value)
+ * @brief      Put variable value.
+ * @param[in]  value  
+ */
 HRESULT DensoVariable::ExecPutValue(const VARIANT_Ptr& value)
 {
   HRESULT hr;

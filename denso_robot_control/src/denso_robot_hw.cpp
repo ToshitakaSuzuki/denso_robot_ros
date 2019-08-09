@@ -127,20 +127,23 @@ namespace denso_robot_control
       case DensoRobotRC8::RECVFMT_POSE_TJ:
         break;
       default:
-	ROS_WARN("Recieve format has to contain joint.");
-	m_recvfmt = ((m_recvfmt & ~DensoRobotRC8::RECVFMT_POSE)
-	  | DensoRobotRC8::RECVFMT_POSE_J);
+	      ROS_WARN("Recieve format has to contain joint.");
+	        m_recvfmt = ((m_recvfmt & ~DensoRobotRC8::RECVFMT_POSE)
+	          | DensoRobotRC8::RECVFMT_POSE_J);
         break;
     }
 
+    // Initialize DensoRobotCore.
     HRESULT hr = m_eng->Initialize();
     if(FAILED(hr)) {
       ROS_ERROR("Failed to connect real controller. (%X)", hr);
       return hr;
     }
 
+    // Get DensoController object.
     m_ctrl = m_eng->get_Controller();
 
+    // Get DensoRobot object.
     DensoRobot_Ptr pRob;
     hr = m_ctrl->get_Robot(DensoBase::SRV_ACT, &pRob);
     if(FAILED(hr)) {
@@ -150,6 +153,7 @@ namespace denso_robot_control
 
     m_rob = boost::dynamic_pointer_cast<DensoRobotRC8>(pRob);
 
+    // Check controller robot type.
     hr = CheckRobotType();
     if(FAILED(hr)) {
       ROS_ERROR("Invalid robot type.");
@@ -158,6 +162,7 @@ namespace denso_robot_control
 
     m_rob->ChangeArmGroup(armGroup);
 
+    // Get current joint positions.
     hr = m_rob->ExecCurJnt(m_joint);
     if(FAILED(hr)) {
       ROS_ERROR("Failed to get current joint. (%X)", hr);
@@ -174,7 +179,7 @@ namespace denso_robot_control
     }
 
     {
-      // Clear Error
+      // Clear Error with value 0.
       VARIANT_Ptr vntVal(new VARIANT());
       vntVal->vt = VT_I4; vntVal->lVal = 0L;
       hr = m_varErr->ExecPutValue(vntVal);
@@ -184,6 +189,7 @@ namespace denso_robot_control
       }
     }
 
+    // Change servo state to ON.
     hr = m_rob->AddVariable("@SERVO_ON");
     if(SUCCEEDED(hr)) {
       DensoVariable_Ptr pVar;
@@ -206,10 +212,12 @@ namespace denso_robot_control
     m_rob->put_RecvFormat(m_recvfmt);
     m_recvfmt = m_rob->get_RecvFormat();
 
+    // Subscriber and Publisher for slave move.
     m_subChangeMode = nh.subscribe<Int32>(
         "ChangeMode", 1, &DensoRobotHW::Callback_ChangeMode, this);
     m_pubCurMode = nh.advertise<Int32>("CurMode", 1);
-    
+
+    // Change slave mode to J with Mode2 (0x202). 
     hr = ChangeModeWithClearError(DensoRobotRC8::SLVMODE_SYNC_WAIT
 	| DensoRobotRC8::SLVMODE_POSE_J);
     if(FAILED(hr)) {
@@ -219,9 +227,15 @@ namespace denso_robot_control
 
     return S_OK;
   }
-
+  
+  /**
+  * @fn         HRESULT DensoRobotHW::ChangeModeWithClearError(int mode)
+  * @brief      
+  * @param[in]  mode Slave Mode.
+  */
   HRESULT DensoRobotHW::ChangeModeWithClearError(int mode)
   {
+    // Change slave mode.
     HRESULT hr = m_eng->ChangeMode(mode, mode == DensoRobotRC8::SLVMODE_NONE);
     if(FAILED(hr)) {
       // Clear Error
@@ -230,11 +244,13 @@ namespace denso_robot_control
       m_varErr->ExecPutValue(vntVal);
     }
 
+    // Publish current Slave Mode.
     Int32 msg;
     msg.data = m_eng->get_Mode();
     m_pubCurMode.publish(msg);
 
     if(msg.data == DensoRobotRC8::SLVMODE_NONE) {
+      // Publish data when non-slave mode.
       m_subMiniIO.shutdown();
       m_subHandIO.shutdown();
       m_subSendUserIO.shutdown();
@@ -246,40 +262,49 @@ namespace denso_robot_control
     }
     else
     {
+      // In slave mode.
       ros::NodeHandle nh;
-    
+
+      // Subscribers. 
       if(m_sendfmt & DensoRobotRC8::SENDFMT_HANDIO)
       {
-	m_subHandIO = nh.subscribe<Int32>(
-	  "Write_HandIO", 1, &DensoRobotHW::Callback_HandIO, this);
+	      m_subHandIO = nh.subscribe<Int32>(
+	      "Write_HandIO", 1, &DensoRobotHW::Callback_HandIO, this);
       }
+
       if(m_sendfmt & DensoRobotRC8::SENDFMT_MINIIO)
       {
-	m_subMiniIO = nh.subscribe<Int32>(
-	  "Write_MiniIO", 1, &DensoRobotHW::Callback_MiniIO, this);
+	      m_subMiniIO = nh.subscribe<Int32>(
+	      "Write_MiniIO", 1, &DensoRobotHW::Callback_MiniIO, this);
       }
+
       if(m_sendfmt & DensoRobotRC8::SENDFMT_USERIO)
       {
-	m_subSendUserIO = nh.subscribe<UserIO>(
-	  "Write_SendUserIO", 1, &DensoRobotHW::Callback_SendUserIO, this);
+	      m_subSendUserIO = nh.subscribe<UserIO>(
+	      "Write_SendUserIO", 1, &DensoRobotHW::Callback_SendUserIO, this);
       }
+
+      // Publishers.
       if(m_recvfmt & DensoRobotRC8::RECVFMT_HANDIO)
       {
-	m_pubHandIO = nh.advertise<Int32>("Read_HandIO", 1);
+	      m_pubHandIO = nh.advertise<Int32>("Read_HandIO", 1);
       }
+
       if(m_recvfmt & DensoRobotRC8::RECVFMT_CURRENT)
       {
-	m_pubCurrent = nh.advertise<Float64MultiArray>("Read_Current", 1);
+	      m_pubCurrent = nh.advertise<Float64MultiArray>("Read_Current", 1);
       }
+
       if(m_recvfmt & DensoRobotRC8::RECVFMT_MINIIO)
       {
-	m_pubMiniIO = nh.advertise<Int32>("Read_MiniIO", 1);
+	      m_pubMiniIO = nh.advertise<Int32>("Read_MiniIO", 1);
       }
+
       if(m_recvfmt & DensoRobotRC8::RECVFMT_USERIO)
       {
-	m_subRecvUserIO = nh.subscribe<UserIO>(
-	  "Write_RecvUserIO", 1, &DensoRobotHW::Callback_RecvUserIO, this);
-	m_pubRecvUserIO = nh.advertise<UserIO>("Read_RecvUserIO", 1);
+	      m_subRecvUserIO = nh.subscribe<UserIO>(
+	      "Write_RecvUserIO", 1, &DensoRobotHW::Callback_RecvUserIO, this);
+	      m_pubRecvUserIO = nh.advertise<UserIO>("Read_RecvUserIO", 1);
       }
     }
     
@@ -297,6 +322,10 @@ namespace denso_robot_control
     }
   }
 
+  /**
+  * @fn         HRESULT DensoRobotHW::CheckRobotType()
+  * @brief      Check robot type.
+  */
   HRESULT DensoRobotHW::CheckRobotType()
   {
     DensoVariable_Ptr pVar;
@@ -305,14 +334,15 @@ namespace denso_robot_control
 
     HRESULT hr = m_rob->AddVariable(strTypeName);
     if(SUCCEEDED(hr)) {
+      // Get value of @TYPE_NAME.
       m_rob->get_Variable(strTypeName, &pVar);
       hr = pVar->ExecGetValue(vntVal);
       if(SUCCEEDED(hr)) {
         strTypeName = DensoBase::ConvertBSTRToString(vntVal->bstrVal);
         if(strncmp(m_robName.c_str(), strTypeName.c_str(),
-		   (m_robName.length() < strTypeName.length())
-		   ? m_robName.length() : strTypeName.length()))
-	{
+		            (m_robName.length() < strTypeName.length())
+		              ? m_robName.length() : strTypeName.length()))
+	      {
           hr = E_FAIL;
         }
       }
@@ -321,6 +351,12 @@ namespace denso_robot_control
     return hr;
   }
 
+  /**
+  * @fn         void DensoRobotHW::read(ros::Time time, ros::Duration period)
+  * @brief      Read hardware info.
+  * @param[in]  time The current time.
+  * @param[in]  period Control period.
+  */
   void DensoRobotHW::read(ros::Time time, ros::Duration period)
   {
     boost::mutex::scoped_lock lockMode(m_mtxMode);
@@ -348,11 +384,19 @@ namespace denso_robot_control
     }
   }
 
+  /**
+  * @fn         void DensoRobotHW::(ros::Time time, ros::Duration period)
+  * @brief      Read hardware info.
+  * @param[in]  time The current time.
+  * @param[in]  period Control period.
+  */
   void DensoRobotHW::write(ros::Time time, ros::Duration period)
   {
     boost::mutex::scoped_lock lockMode(m_mtxMode);
     
     if(m_eng->get_Mode() != DensoRobotRC8::SLVMODE_NONE) {
+      // In slave mode.
+
       std::vector<double> pose;
       pose.resize(JOINT_MAX);
       int bits = 0x0000;
@@ -373,36 +417,43 @@ namespace denso_robot_control
         bits |= (1 << i);
       }
       pose.push_back(0x400000 | bits);
+
+      // Call "slvMove" command.
       HRESULT hr = m_rob->ExecSlaveMove(pose, m_joint);
       if(SUCCEEDED(hr)) {
         if(m_recvfmt & DensoRobotRC8::RECVFMT_HANDIO)
         {
-	  Int32 msg;
-	  msg.data = m_rob->get_HandIO();
-	  m_pubHandIO.publish(msg);
+	        Int32 msg;
+	        msg.data = m_rob->get_HandIO();
+	        m_pubHandIO.publish(msg);
         }
+
         if(m_recvfmt & DensoRobotRC8::RECVFMT_CURRENT)
         {
-	  Float64MultiArray msg;
-	  m_rob->get_Current(msg.data);
-	  m_pubCurrent.publish(msg);
+	        Float64MultiArray msg;
+	        m_rob->get_Current(msg.data);
+	        m_pubCurrent.publish(msg);
         }
+
         if(m_recvfmt & DensoRobotRC8::RECVFMT_MINIIO)
         {
-	  Int32 msg;
-	  msg.data = m_rob->get_MiniIO();
-	  m_pubMiniIO.publish(msg);
+	        Int32 msg;
+	        msg.data = m_rob->get_MiniIO();
+	        m_pubMiniIO.publish(msg);
         }
+
         if(m_recvfmt & DensoRobotRC8::RECVFMT_USERIO)
         {
-	  UserIO msg;
-	  m_rob->get_RecvUserIO(msg);
-	  m_pubRecvUserIO.publish(msg);
+	        UserIO msg;
+	        m_rob->get_RecvUserIO(msg);
+	        m_pubRecvUserIO.publish(msg);
         }	
       }
       else if(FAILED(hr) && (hr != E_BUF_FULL)) {
+        // In non-slave mode.
         ROS_ERROR("Failed to write. (%X)", hr);
 
+        // Get error code.
         VARIANT_Ptr vntVal(new VARIANT());
         hr = m_varErr->ExecGetValue(vntVal);
         if(FAILED(hr) || (vntVal->lVal != 0)) {
