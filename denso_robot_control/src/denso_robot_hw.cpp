@@ -424,4 +424,4 @@ namespace denso_robot_control
     m_rob->put_RecvUserIO(*msg.get());
   }
 
-}
+} // namespace denso_robot_control

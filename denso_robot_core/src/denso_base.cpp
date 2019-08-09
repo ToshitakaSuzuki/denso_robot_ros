@@ -106,6 +106,16 @@ HRESULT DensoBase::AddVariable(int32_t get_id,
   return S_OK;
 }
 
+/**
+ * @fn         HRESULT DensoBase::AddVariable(int32_t get_id,
+ *              const XMLElement *xmlVar,
+ *              DensoVariable_Vec& vecVar)
+ * @brief      Execute AddVariable by using config.xml
+ * @param[in]  get_id 
+ * @param[in]  name Object name for comparing.
+ * @param[out] obj The pointer to DensoBase object.
+ * @note       If there is no matched object, return E_HANDLE.
+ */
 HRESULT DensoBase::AddVariable(int32_t get_id,
     const XMLElement *xmlVar,
     DensoVariable_Vec& vecVar)
@@ -263,6 +273,15 @@ HRESULT DensoBase::get_Object(const DensoBase_Vec& vecBase,
   return S_OK;
 }
 
+/**
+ * @fn         HRESULT DensoBase::get_Object(const Densobase_Vec& vecBase,
+ *              const std::string& name, DensoBase_Ptr *obj)
+ * @brief      Get DensoBase object specified by name.
+ * @param[in]  vecBase The reference of vector of DensoBase.
+ * @param[in]  name Object name for comparing.
+ * @param[out] obj The pointer to DensoBase object.
+ * @note       If there is no object matched, return E_HANDLE.
+ */
 HRESULT DensoBase::get_Object(const DensoBase_Vec& vecBase,
     const std::string& name, DensoBase_Ptr *obj)
 {
