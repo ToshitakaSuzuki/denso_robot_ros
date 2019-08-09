@@ -63,10 +63,15 @@ namespace denso_robot_control
 
   }
 
+  /**
+   * @fn         HRESULT DensoRobotHW::Initialize()
+   * @brief      Initialize Denso RobotHW.
+   */
   HRESULT DensoRobotHW::Initialize()
   {
     ros::NodeHandle nh;
 
+    // Get params from parameter server.
     if (!nh.getParam("robot_name", m_robName)) {
       ROS_WARN("Failed to get robot_name parameter.");
     }
@@ -75,10 +80,12 @@ namespace denso_robot_control
       ROS_WARN("Failed to get robot_joints parameter.");
     }
 
+    // Register joints to hardware interface.
     for (int i = 0; i < m_robJoints; i++) {
       std::stringstream ss;
       ss << "joint_" << i+1;
 
+      // Get joint type. prismatic or revolute.
       if (!nh.getParam(ss.str(), m_type[i])) {
         ROS_WARN("Failed to get joint_%d parameter.", i+1);
         ROS_WARN("It was assumed revolute type.");
@@ -94,12 +101,17 @@ namespace denso_robot_control
       m_PosJntInterface.registerHandle(pos_handle);
     }
 
+    registerInterface(&m_JntStInterface);
+    registerInterface(&m_PosJntInterface);
+
+    // Set arm group 0 as default.
     int armGroup = 0;
     if (!nh.getParam("arm_group", armGroup)) {
       ROS_INFO("Use arm group 0.");
       armGroup = 0;
     }
 
+    // Set I/O read and recive format.
     int format = 0;
     if(nh.getParam("send_format", format)) {
       m_sendfmt = format;
@@ -120,9 +132,6 @@ namespace denso_robot_control
 	  | DensoRobotRC8::RECVFMT_POSE_J);
         break;
     }
-
-    registerInterface(&m_JntStInterface);
-    registerInterface(&m_PosJntInterface);
 
     HRESULT hr = m_eng->Initialize();
     if(FAILED(hr)) {

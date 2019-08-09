@@ -111,10 +111,9 @@ HRESULT DensoBase::AddVariable(int32_t get_id,
  *              const XMLElement *xmlVar,
  *              DensoVariable_Vec& vecVar)
  * @brief      Execute AddVariable by using config.xml
- * @param[in]  get_id 
- * @param[in]  name Object name for comparing.
- * @param[out] obj The pointer to DensoBase object.
- * @note       If there is no matched object, return E_HANDLE.
+ * @param[in]  get_id ID_CONTROLLER_GETVARIABLE (equivalent to caoCtrl.AddVariable).
+ * @param[in]  xmlVar <variable> element.
+ * @param[in]  vecVar vector of variables.
  */
 HRESULT DensoBase::AddVariable(int32_t get_id,
     const XMLElement *xmlVar,
@@ -124,9 +123,12 @@ HRESULT DensoBase::AddVariable(int32_t get_id,
 
   std::string name;
   int16_t vt = VT_EMPTY;
-  bool bRead = false, bWrite = false, bID = false;
+  bool bRead = false;
+  bool bWrite = false;
+  bool  bID = false;
   int  iDuration = BCAP_VAR_DEFAULT_DURATION;
 
+  // Parse <Variable> element.
   name = xmlVar->GetText();
 
   chTmp = xmlVar->Attribute(XML_ATTR_VARTYPE);
@@ -144,19 +146,29 @@ HRESULT DensoBase::AddVariable(int32_t get_id,
   chTmp = xmlVar->Attribute(XML_ATTR_DURATION);
   if(chTmp != NULL) iDuration = atoi(chTmp);
 
+  // Add variables by using b-CAP function ID.
   Handle_Vec vecHandle;
   HRESULT hr = AddObject(get_id, name, vecHandle);
   if(FAILED(hr)) return hr;
 
+  // Store added variable.
   DensoVariable_Ptr var(new DensoVariable(this,
       m_vecService, vecHandle, name, m_mode,
       vt, bRead, bWrite, bID, iDuration));
-
   vecVar.push_back(var);
 
   return S_OK;
 }
 
+/**
+ * @fn         HRESULT DensoBase::AddObject
+ *              int32_t get_id, const std::string& name,
+ *              Handle_vec& vecHandle)
+ * @brief      Execute Add objects.
+ * @param[in]  get_id b-CAP function ID.
+ * @param[in]  name The name of object.
+ * @param[in]  vecHandle Vector of handle.
+ */
 HRESULT DensoBase::AddObject(
     int32_t get_id, const std::string& name,
     Handle_Vec& vecHandle)

@@ -39,8 +39,14 @@ DensoTask::~DensoTask()
 
 }
 
+/**
+ * @fn         HRESULT DensoTask::InitializeBCAP(XMLElement *xmlElem)
+ * @brief      
+ * @param[in]  xmlElem <Variable> elements.
+ */
 HRESULT DensoTask::InitializeBCAP(XMLElement *xmlElem)
 {
+  // Add Task's variables.
   return AddVariable(xmlElem);
 }
 

@@ -39,6 +39,10 @@ DensoControllerRC8::~DensoControllerRC8()
 
 }
 
+/**
+ * @fn         HRESULT DensoControllerRC8::AddController()
+ * @brief      Execute AddController.
+ */
 HRESULT DensoControllerRC8::AddController()
 {
   static const std::string CTRL_CONNECT_OPTION[BCAP_CTRL_CONNECT_ARGS] = 
@@ -62,6 +66,7 @@ HRESULT DensoControllerRC8::AddController()
       vntTmp->vt = VT_BSTR;
 
       if(argc == 0) {
+        // Set controller name.
         strTmp = "";
         if(m_name != "") {
           ss << ros::this_node::getNamespace() << m_name << srvs;
@@ -70,31 +75,40 @@ HRESULT DensoControllerRC8::AddController()
       } else {
         strTmp = CTRL_CONNECT_OPTION[argc];
       }
-
+      
       vntTmp->bstrVal = ConvertStringToBSTR(strTmp);
-
       vntArgs.push_back(*vntTmp.get());
     }
 
+    // Execute controller connect.
     hr = m_vecService[srvs]->ExecFunction(ID_CONTROLLER_CONNECT, vntArgs, vntRet);
     if(FAILED(hr)) break;
 
+    // Get controller handle.
     m_vecHandle.push_back(vntRet->ulVal);
   }
 
   return hr;
 }
 
+/**
+ * @fn         HRESULT DensoControllerRC8::AddRobot(XMLElement *xmlElem)
+ * @brief      Execute AddRobot.
+ * @param[in]  xmlElem Contents of <Robot> element.  
+ */
 HRESULT DensoControllerRC8::AddRobot(XMLElement *xmlElem)
 {
   int objs;
   HRESULT hr;
-
   Name_Vec   vecName;
+
+  // Get list of robot names.
   hr = DensoBase::GetObjectNames(ID_CONTROLLER_GETROBOTNAMES, vecName);
+
   if(SUCCEEDED(hr)) {
     for(objs = 0; objs < vecName.size(); objs++) {
       Handle_Vec vecHandle;
+      // AddRobot.
       hr = DensoBase::AddObject(
           ID_CONTROLLER_GETROBOT, vecName[objs], vecHandle);
       if(FAILED(hr)) break;
@@ -104,6 +118,7 @@ HRESULT DensoControllerRC8::AddRobot(XMLElement *xmlElem)
       hr = rob->InitializeBCAP(xmlElem);
       if(FAILED(hr)) break;
 
+      // Store robot objects.
       m_vecRobot.push_back(rob);
     }
   }

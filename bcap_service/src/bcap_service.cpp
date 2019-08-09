@@ -71,51 +71,67 @@ BCAPService::~BCAPService()
   Disconnect();
 }
 
+/**
+ * @fn         void BCAPService::parseParams()
+ * @brief      Parse connection option parameters.
+ */
 void BCAPService::parseParams()
 {
   ros::NodeHandle node;
 
   if(!node.getParam("conn_type", m_type))
   {
+    // Default
     m_type = "tcp";
   }
 
   if(!node.getParam("ip_address", m_addr))
   {
+    // Default
     m_addr = "192.168.0.1";
   }
 
   if(!node.getParam("port_number", m_port))
   {
+    // Default
     m_port = 5007;
   }
 
   if(!node.getParam("timeout", m_timeout))
   {
+    // Default
     m_timeout = 3000;
   }
 
   if(!node.getParam("retry_count", m_retry))
   {
+    // Default
     m_retry = 5;
   }
 
   if(!node.getParam("wait_time", m_wait))
   {
+    // Default
     m_wait = 0;
   }
 
   if(!node.getParam("watchdog_timer", m_wdt))
   {
+    // Default
     m_wdt = 400;
   }
 
   if(!node.getParam("invoke_timeout", m_invoke))
   {
+    // Default
     m_invoke = 180000;
   }
 }
 
+/**
+ * @fn         HRESULT BCAPService::Connect()
+ * @brief      Connect b-CAP server.
+ */
 HRESULT BCAPService::Connect()
 {
   HRESULT hr;
@@ -136,6 +152,10 @@ HRESULT BCAPService::Connect()
   return hr;
 }
 
+/**
+ * @fn         HRESULT BCAPService::Disconnect()
+ * @brief      Disconnect b-CAP server.
+ */
 HRESULT BCAPService::Disconnect()
 {
   if(m_fd > 0) {

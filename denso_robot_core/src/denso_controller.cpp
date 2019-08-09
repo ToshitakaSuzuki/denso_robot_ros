@@ -49,6 +49,11 @@ DensoController::~DensoController()
 
 }
 
+/**
+ * @fn         HRESULT DensoController::InitiazlieBCAP(const std::string& filename)
+ * @brief      Initialize BCAP connection settings.
+ * @param[in]  filename of "config.xml"
+ */
 HRESULT DensoController::InitializeBCAP(const std::string& filename)
 {
   HRESULT      hr;
@@ -56,6 +61,7 @@ HRESULT DensoController::InitializeBCAP(const std::string& filename)
   XMLDocument  xmlDoc;
   XMLElement  *xmlCtrl, *xmlRob, *xmlTsk;
 
+  // Connect b-CAP server.
   for(int srvs = DensoBase::SRV_MIN; srvs <= DensoBase::SRV_MAX; srvs++) {
     hr = m_vecService[srvs]->Connect();
     if(FAILED(hr)) return hr;
@@ -64,24 +70,28 @@ HRESULT DensoController::InitializeBCAP(const std::string& filename)
   ret = xmlDoc.LoadFile(filename.c_str());
   if(ret != XML_SUCCESS) return E_FAIL;
 
+  // Execute AddController.
   hr = AddController();
   if(FAILED(hr)) return hr;
 
   xmlCtrl = xmlDoc.FirstChildElement(XML_CTRL_NAME);
   if(xmlCtrl == NULL) return E_FAIL;
 
+  // Execute AddVariable.
   hr = AddVariable(xmlCtrl);
   if(FAILED(hr)) return hr;
 
   xmlRob = xmlCtrl->FirstChildElement(XML_ROBOT_NAME);
   if(xmlRob == NULL) return E_FAIL;
 
+  // Execute AddRobot.
   hr = AddRobot(xmlRob);
   if(FAILED(hr)) return hr;
 
   xmlTsk = xmlCtrl->FirstChildElement(XML_TASK_NAME);
   if(xmlTsk == NULL) return E_FAIL;
 
+  // Execute AddTask.
   hr = AddTask(xmlTsk);
 
   return hr;
@@ -264,12 +274,22 @@ HRESULT DensoController::AddTask(XMLElement *xmlElem)
   return hr;
 }
 
+/**
+ * @fn         HRESULT DensoController::AddVariable(const std::string& name)
+ * @brief      Execute AddVariable.
+ * @param[in]  name  
+ */
 HRESULT DensoController::AddVariable(const std::string& name)
 {
   return DensoBase::AddVariable(ID_CONTROLLER_GETVARIABLE,
       name, m_vecVar);
 }
 
+/**
+ * @fn         HRESULT DensoController::AddVariable(XMLElement *xmlElem)
+ * @brief      Execute AddVariable.
+ * @param[in]  xmlElem Contents of <Controller> element.  
+ */
 HRESULT DensoController::AddVariable(XMLElement *xmlElem)
 {
   HRESULT hr = S_OK;

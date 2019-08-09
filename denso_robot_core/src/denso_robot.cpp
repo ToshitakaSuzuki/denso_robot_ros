@@ -42,8 +42,14 @@ DensoRobot::~DensoRobot()
 
 }
 
+/**
+ * @fn         HRESULT DensoRobot::InitializeBCAP(XMLElement *xmlElem)
+ * @brief      
+ * @param[in]  xmlElem <Variable> elements.
+ */
 HRESULT DensoRobot::InitializeBCAP(XMLElement *xmlElem)
 {
+  // Add robot's variables.
   return AddVariable(xmlElem);
 }
 

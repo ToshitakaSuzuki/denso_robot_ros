@@ -63,11 +63,17 @@ DensoRobotCore::~DensoRobotCore()
 
 }
 
+/**
+ * @fn         HRESULT DensoRobotCore::Initialize()
+ * @brief      Initialize DensoRobotCore.
+ */
 HRESULT DensoRobotCore::Initialize()
 {
   ros::NodeHandle node;
-  std::string name, filename;
+  std::string name;
+  std::string filename;
 
+  // Get params in denso_robot_core.launch.xml through parameter server.
   if(!node.getParam("controller_name", name)){
     name = "";
   }
@@ -80,7 +86,11 @@ HRESULT DensoRobotCore::Initialize()
     return E_FAIL;
   }
 
+  // Select controller object.
   switch(m_ctrlType){
+    case 0:
+      // TODO: make DensoControllerCOBOTTA
+      break;
     case 8:
       m_ctrl = boost::make_shared<DensoControllerRC8>(name, &m_mode);
       break;
@@ -88,6 +98,7 @@ HRESULT DensoRobotCore::Initialize()
       return E_FAIL;
   }
 
+  // Connect b-CAP server and AddController.
   return m_ctrl->InitializeBCAP(filename);
 }
 
